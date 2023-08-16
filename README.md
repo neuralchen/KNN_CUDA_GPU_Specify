@@ -42,27 +42,37 @@ import torch
 assert torch.cuda.is_available()
 
 from knn_cuda import KNN
-"""
-if transpose_mode is True, 
-    ref   is Tensor [bs x nr x dim]
-    query is Tensor [bs x nq x dim]
+# """
+# if transpose_mode is True, 
+#     ref   is Tensor [bs x nr x dim]
+#     query is Tensor [bs x nq x dim]
     
-    return 
-        dist is Tensor [bs x nq x k]
-        indx is Tensor [bs x nq x k]
-else
-    ref   is Tensor [bs x dim x nr]
-    query is Tensor [bs x dim x nq]
+#     return 
+#         dist is Tensor [bs x nq x k]
+#         indx is Tensor [bs x nq x k]
+# else
+#     ref   is Tensor [bs x dim x nr]
+#     query is Tensor [bs x dim x nq]
     
-    return 
-        dist is Tensor [bs x k x nq]
-        indx is Tensor [bs x k x nq]
-"""
+#     return 
+#         dist is Tensor [bs x k x nq]
+#         indx is Tensor [bs x k x nq]
+# """
 
-knn = KNN(k=10, transpose_mode=True)
+knn = KNN(k=3, transpose_mode=True).to("cuda:6")
 
-ref = torch.rand(32, 1000, 5).cuda("cuda:1")
-query = torch.rand(32, 50, 5).cuda("cuda:1")
+size = 512
+xs = torch.linspace(0, size, steps=size)
+ys = torch.linspace(0, size, steps=size)
+x, y = torch.meshgrid(xs, ys)
+x= x.reshape(-1,1)
 
-dist, indx = knn(ref, query)  # 32 x 50 x 10
+y= y.reshape(-1,1)
+query = torch.cat((x,y),dim=1).unsqueeze(0).to("cuda:6")
+
+ref = torch.randint(0, size, (1, 6000, 2)).float().to("cuda:6")
+
+dist, indx = knn(ref, query)
+print(indx)
+print(dist)
 ```
